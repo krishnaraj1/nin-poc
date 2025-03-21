@@ -11,6 +11,12 @@ env:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    
+    # Add permissions for OIDC token generation
+    permissions:
+      contents: read
+      id-token: write
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,18 +35,18 @@ jobs:
 
       - name: Initialize Terraform
         run: |
-          terraform init \
+          cd Terraform && terraform init \
             -backend-config="bucket=${{ secrets.TF_GCS_BACKEND_NAME }}" \
             -backend-config="prefix=state/terraform.tfstate" 
 
       - name: Run Terraform Plan
         run: |
-          terraform plan -out=tfplan \
+          cd Terraform && terraform plan -out=tfplan \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}"
 
       - name: Run Terraform Apply
         run: |
-          terraform apply -auto-approve tfplan \
+          cd Terraform && terraform apply -auto-approve tfplan \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}
