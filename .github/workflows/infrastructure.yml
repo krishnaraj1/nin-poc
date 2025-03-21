@@ -1,0 +1,46 @@
+name: Build, Plan, Apply Terraform, and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GOOGLE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GH_SA_EMAIL }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.1.7" 
+
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_GCS_BACKEND_NAME }}" \
+            -backend-config="prefix=state/terraform.tfstate" 
+
+      - name: Run Terraform Plan
+        run: |
+          terraform plan -out=tfplan \
+            -var="project=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="region=${{ secrets.GCP_REGION }}"
+
+      - name: Run Terraform Apply
+        run: |
+          terraform apply -auto-approve tfplan \
+            -var="project=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="region=${{ secrets.GCP_REGION }}
