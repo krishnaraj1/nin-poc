@@ -33,6 +33,9 @@ jobs:
         with:
           terraform_version: "1.7.5" 
 
+      - name: Debug Secret Value
+        run: echo "TF_GCS_BACKEND_NAME='${{ secrets.TF_GCS_BACKEND_NAME }}'" | sed 's/\*/STAR/g'
+
       - name: Initialize Terraform
         run: |
           terraform init \
