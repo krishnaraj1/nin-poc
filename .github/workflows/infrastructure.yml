@@ -12,11 +12,6 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     
-    # Add permissions for OIDC token generation
-    permissions:
-      contents: read
-      id-token: write
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,17 +19,12 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GH_SA_EMAIL }}
+          credentials_json: ${{ secrets.GH_TF_KEY }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.5" 
-
-      - name: Debug Secret Value
-        run: echo "TF_GCS_BACKEND_NAME='${{ secrets.TF_GCS_BACKEND_NAME }}'" | sed 's/\*/STAR/g'
 
       - name: Initialize Terraform
         run: |
@@ -43,14 +33,12 @@ jobs:
             -backend-config="prefix=state/terraform.tfstate" 
 
       - name: Run Terraform Plan
-        timeout-minutes: 10
         run: |
           terraform plan -out=tfplan \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}"
 
       - name: Run Terraform Apply
-        timeout-minutes: 20
         run: |
           terraform apply -auto-approve tfplan \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
