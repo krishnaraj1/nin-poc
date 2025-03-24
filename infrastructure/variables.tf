@@ -7,7 +7,7 @@ variable "region" {
 variable "enabled_apis" {
   description = "List of APIs to enable"
   type        = list(string)
-  default     = [
+  default = [
     "container.googleapis.com"
   ]
 }
