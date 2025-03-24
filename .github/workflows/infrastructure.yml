@@ -31,12 +31,12 @@ jobs:
       - name: Run Terraform Plan
         timeout-minutes: 20
         run: | 
-          terraform plan \
+          terraform plan  -input=false\
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}"
 
       - name: Run Terraform Apply
         run: |
-          terraform apply \
+          terraform apply  -input=false\
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}
