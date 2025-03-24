@@ -33,13 +33,14 @@ jobs:
             -backend-config="prefix=state/terraform.tfstate" 
 
       - name: Run Terraform Plan
-        run: |
-          terraform plan -out=tfplan \
+        timeout-minutes: 20
+        run: | 
+          terraform plan \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}"
 
       - name: Run Terraform Apply
         run: |
-          terraform apply -auto-approve tfplan \
+          terraform apply \
             -var="project=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}
