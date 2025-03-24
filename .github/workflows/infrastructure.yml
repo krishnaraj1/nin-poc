@@ -36,6 +36,4 @@ jobs:
 
       - name: Run Terraform Apply
         run: |
-          terraform apply -input=false -auto-approve tfplan\
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-            -var="region=${{ secrets.GCP_REGION }}"
+          terraform apply -input=false -auto-approve tfplan
