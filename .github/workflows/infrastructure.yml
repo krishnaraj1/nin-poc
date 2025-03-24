@@ -20,7 +20,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5" 
+          terraform_version: "1.11.2" 
 
       - name: Initialize Terraform
         run: |
@@ -29,14 +29,13 @@ jobs:
             -backend-config="prefix=state/terraform.tfstate" 
 
       - name: Run Terraform Plan
-        timeout-minutes: 20
         run: | 
-          terraform plan  -input=false\
-            -var="project=${{ secrets.GCP_PROJECT_ID }}" \
+          terraform plan -input=false -out=tfplan\
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}"
 
       - name: Run Terraform Apply
         run: |
-          terraform apply  -input=false\
-            -var="project=${{ secrets.GCP_PROJECT_ID }}" \
+          terraform apply -input=false -auto-approve tfplan\
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
             -var="region=${{ secrets.GCP_REGION }}

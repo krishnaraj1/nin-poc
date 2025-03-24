@@ -34,7 +34,3 @@ resource "google_container_node_pool" "default-node-pool" {
     ]
   }
 }
-
-output "kubeconfig" {
-  value = google_container_cluster.nino-primary.kubeconfig
-}
