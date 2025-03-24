@@ -11,7 +11,7 @@ env:
   GKE_VERSION: 1.32.0
   GKE_DEPLOYMENT_NAME: nino-db
   GKE_DEPLOYMENT_NAMESPACE: default
-  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:${{ github.sha }}
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:latest
 
 jobs:
   build_and_deploy:
@@ -38,20 +38,18 @@ jobs:
       - run: |
           gcloud auth configure-docker -q
       
-      - name: Build Docker image
+      - name: Build and Push Docker image to Google Container Registry
         run: |
           docker build -t $IMAGE_NAME .
-
-      - name: Push Docker image to Google Container Registry
-        run: |
           docker push $IMAGE_NAME
 
-      # - name: Set up Kubernetes credentials
-      #   run: |
-      #     gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID
+      - name: Set up Kubernetes credentials
+        run: |
+          gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID
 
-      # - name: Deploy to GKE
-      #   run: |
-      #     kubectl apply -f k8s/deployment.yaml
-      #     kubectl apply -f k8s/service.yaml
-      #     kubectl apply -f k8s/ingress.yaml
+      - name: Deploy to GKE
+        run: |
+          kubectl apply -f ../manifests/deployment.yaml
+          kubectl apply -f ../manifests/service.yaml
+          kubectl rollout restart deployment/$GKE_DEPLOYMENT_NAME -n $GKE_DEPLOYMENT_NAMESPACE
+          kubectl rollout status deployment/$GKE_DEPLOYMENT_NAME -n $GKE_DEPLOYMENT_NAMESPACE

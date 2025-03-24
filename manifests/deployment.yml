@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nino-db
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nino-db
+  template:
+    metadata:
+      labels:
+        app: nino-db
+    spec:
+      containers:
+        - name: nino-db
+          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
