@@ -11,7 +11,7 @@ env:
   GKE_VERSION: 1.32.0
   GKE_DEPLOYMENT_NAME: nino-db
   GKE_DEPLOYMENT_NAMESPACE: default
-  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:${{ github.sha }}
 
 jobs:
   build_and_deploy:
@@ -24,15 +24,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.9.0
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          version: '350.0.0'
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          credentials_json: '${{ secrets.GH_TF_KEY }}'
 
-      - name: Authenticate to Google Cloud
-        run: |
-          echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       
       - name: Build Docker image
         run: |
