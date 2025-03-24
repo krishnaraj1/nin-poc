@@ -7,6 +7,7 @@ on:
 
 env:
   GOOGLE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GH_TF_KEY }}
 
 jobs:
   terraform:
@@ -15,11 +16,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Authenticate to Google Cloud
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: ${{ secrets.GH_TF_KEY }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
