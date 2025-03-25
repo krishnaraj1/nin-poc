@@ -8,13 +8,12 @@ on:
 env:
   GOOGLE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
   GOOGLE_CREDENTIALS: ${{ secrets.GH_TF_KEY }}
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   CLUSTER_NAME: nino-cluster-1
   CLUSTER_ZONE: us-central1-a
   GKE_VERSION: 1.32.0
   GKE_DEPLOYMENT_NAME: nino-db
   GKE_DEPLOYMENT_NAMESPACE: default
-  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:latest
+  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:${{ github.sha }}
 
 jobs:
   Infrastructure:
@@ -48,12 +47,13 @@ jobs:
         run: |
           terraform apply -input=false -auto-approve tfplan
 
-  Build_app_and_Deploy:
+  Build_and_Deploy_app:
+    needs: Infrastructure
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
@@ -74,10 +74,15 @@ jobs:
           cd App
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
+  
+      - name: 'Install gke-gcloud-auth-plugin'
+        run: |
+          gcloud components install gke-gcloud-auth-plugin -q
+          gcloud components update -q
 
       - name: Get Kubernetes credentials
         run: |
-          gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID
+          gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $GOOGLE_PROJECT
 
       - name: Installing Helm
         run: |
@@ -87,8 +92,9 @@ jobs:
         run: |
           cd Charts/nino-db
           helm upgrade --install nino-db ./charts/nino-db \
-            --namespace default \
-            --set image.repository=$IMAGE_NAME \
-            --set image.tag=latest \
-            --set ingress.enabled=true
-            --set gcrSA-Key="${{ secrets.GH_TF_KEY }}"
+            --namespace $GKE_DEPLOYMENT_NAMESPACE \
+            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
+            --set image.tag=${{ github.sha }} \
+            --set ingress.enabled=true \
+            --set gcrSAKey="${{ secrets.GH_TF_KEY }}" \
+            --wait
