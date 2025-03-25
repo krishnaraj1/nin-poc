@@ -91,7 +91,9 @@ jobs:
       - name: Test Helm Command Variations
         run: |
           helm upgrade --install nino-db Charts/nino-db --dry-run --debug \
-            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db
+            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
+            --set image.tag=${{ github.sha }} \
+            --set gcrSAKey=${{ secrets.GH_TF_KEY }}
 
 #      - name: Deploy to GKE with Helm
 #        run: |
