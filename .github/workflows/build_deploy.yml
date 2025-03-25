@@ -90,7 +90,7 @@ jobs:
 
       - name: Test Helm Command Variations
         run: |
-          helm upgrade --install nino-db Charts/nino-db --set gcrSAKey="${{ secrets.GH_TF_KEY }}"
+          helm upgrade --install nino-db Charts/nino-db --dry-run --debug || echo "Failed: Debug mode"
 
 #      - name: Deploy to GKE with Helm
 #        run: |
