@@ -88,10 +88,20 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Test Helm Command Variations
+        run: |
+          echo "Variation 1: Basic command"
+          helm upgrade --install nino-db Charts/nino-db || echo "Failed: Basic command"
+          echo "Variation 2: Quoted arguments"
+          helm upgrade --install "nino-db" "Charts/nino-db" || echo "Failed: Quoted arguments"
+          echo "Variation 3: Full debug"
+          helm upgrade --install nino-db Charts/nino-db --dry-run --debug || echo "Failed: Debug mode"
+
       - name: Deploy to GKE with Helm
         run: |
           echo "Current directory: $(pwd)"
-          helm upgrade --install nino-db Charts/nino-db --dry-run --debug \
+          helm version
+          helm upgrade --install "nino-db" "Charts/nino-db" --dry-run --debug \
             --namespace $GKE_DEPLOYMENT_NAMESPACE \
             --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
             --set image.tag=${{ github.sha }} \
