@@ -122,6 +122,6 @@ tolerations: []
 affinity: {}
 
 
-imagePullSecrets:
-  - name: "{{ .Release.Name }}-gcr-key" 
-gcrSAKey : ""
+imagePullSecrets: []
+#  - name: "{{ .Release.Name }}-gcr-key" 
+#gcrSAKey : ""
