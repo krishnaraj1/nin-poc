@@ -90,7 +90,7 @@ jobs:
 
       - name: Test Helm Command Variations
         run: |
-          helm upgrade --install nino-db Charts/nino-db --dry-run --debug || echo "Failed: Debug mode"
+          helm upgrade --install nino-db Charts/nino-db --dry-run --debug
 
 #      - name: Deploy to GKE with Helm
 #        run: |
