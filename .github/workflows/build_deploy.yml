@@ -1,10 +1,13 @@
-name: Build app and Deploy to GKE
+name: Build and Deploy
 
 on:
   push:
     branches:
       - main
+
 env:
+  GOOGLE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+  GOOGLE_CREDENTIALS: ${{ secrets.GH_TF_KEY }}
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   CLUSTER_NAME: nino-cluster-1
   CLUSTER_ZONE: us-central1-a
@@ -14,7 +17,38 @@ env:
   IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:latest
 
 jobs:
-  build_and_push_gcr:
+  Infrastructure:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Infrastructure
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.11.2" 
+
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_GCS_BACKEND_NAME }}" \
+            -backend-config="prefix=state/terraform.tfstate" 
+
+      - name: Run Terraform Plan
+        run: | 
+          terraform plan -input=false -out=tfplan\
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="region=${{ secrets.GCP_REGION }}"
+
+      - name: Run Terraform Apply
+        run: |
+          terraform apply -input=false -auto-approve tfplan
+
+  Build_app_and_Deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +85,7 @@ jobs:
 
       - name: Deploy to GKE with Helm
         run: |
-          cd Charts/ninodb
+          cd Charts/nino-db
           helm upgrade --install nino-db ./charts/nino-db \
             --namespace default \
             --set image.repository=$IMAGE_NAME \
