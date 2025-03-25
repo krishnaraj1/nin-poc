@@ -101,10 +101,9 @@ jobs:
         run: |
           echo "Current directory: $(pwd)"
           helm version
-          helm upgrade --install "nino-db" "Charts/nino-db" --dry-run --debug \
-            --namespace $GKE_DEPLOYMENT_NAMESPACE \
-            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
-            --set image.tag=${{ github.sha }} \
-            --set ingress.enabled=true \
-            --set gcrSAKey="${{ secrets.GH_TF_KEY }}" \
-            --wait
+          helm upgrade --install "nino-db" "Charts/nino-db" --dry-run --debug --namespace $GKE_DEPLOYMENT_NAMESPACE \
+          --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
+          --set image.tag=${{ github.sha }} \
+          --set ingress.enabled=true \
+          --set gcrSAKey="${{ secrets.GH_TF_KEY }}" \
+          --wait
