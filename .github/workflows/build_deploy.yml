@@ -92,7 +92,8 @@ jobs:
         run: |
           helm upgrade --install nino-db Charts/nino-db --dry-run --debug \
             --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
-            --set image.tag=${{ github.sha }}
+            --set image.tag=${{ github.sha }} \
+            --set ingress.enabled=true
 
 #      - name: Deploy to GKE with Helm
 #        run: |
