@@ -90,8 +90,8 @@ jobs:
 
       - name: Deploy to GKE with Helm
         run: |
-          cd Charts/nino-db
-          helm upgrade --install nino-db ./charts/nino-db \
+          cd Charts
+          helm upgrade --install nino-db ./nino-db \
             --namespace $GKE_DEPLOYMENT_NAMESPACE \
             --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
             --set image.tag=${{ github.sha }} \
