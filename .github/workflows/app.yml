@@ -14,11 +14,8 @@ env:
   IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db:latest
 
 jobs:
-  build_and_deploy:
+  build_and_push_gcr:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./app
 
     steps:
       - name: Checkout repository
@@ -40,16 +37,24 @@ jobs:
       
       - name: Build and Push Docker image to Google Container Registry
         run: |
+          cd App
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Set up Kubernetes credentials
+      - name: Get Kubernetes credentials
         run: |
           gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID
 
-      - name: Deploy to GKE
+      - name: Installing Helm
         run: |
-          kubectl apply -f ../manifests/deployment.yaml
-          kubectl apply -f ../manifests/service.yaml
-          kubectl rollout restart deployment/$GKE_DEPLOYMENT_NAME -n $GKE_DEPLOYMENT_NAMESPACE
-          kubectl rollout status deployment/$GKE_DEPLOYMENT_NAME -n $GKE_DEPLOYMENT_NAMESPACE
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Deploy to GKE with Helm
+        run: |
+          cd Charts/ninodb
+          helm upgrade --install nino-db ./charts/nino-db \
+            --namespace default \
+            --set image.repository=$IMAGE_NAME \
+            --set image.tag=latest \
+            --set ingress.enabled=true
+            --set gcrSA-Key="${{ secrets.GH_TF_KEY }}"
