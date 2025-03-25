@@ -88,20 +88,28 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Test Helm Command Variations
-        run: |
-          helm upgrade --install nino-db Charts/nino-db --dry-run --debug \
-            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
-            --set image.tag=${{ github.sha }} \
-            --set ingress.enabled=true
-
-#      - name: Deploy to GKE with Helm
+#      - name: Test Helm Command Variations
 #        run: |
-#          echo "Current directory: $(pwd)"
-#          helm version
-#          helm upgrade --install "nino-db" "Charts/nino-db" --dry-run --debug --namespace $GKE_DEPLOYMENT_NAMESPACE \
-#          --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
-#          --set image.tag=${{ github.sha }} \
-#          --set ingress.enabled=true \
-#          --set gcrSAKey="${{ secrets.GH_TF_KEY }}" \
-#          --wait
+#          helm upgrade --install nino-db Charts/nino-db --dry-run --debug \
+#            --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db \
+#            --set image.tag=${{ github.sha }} \
+#            --set ingress.enabled=true
+
+      - name: Create Helm Values File
+        run: |
+          cat << EOF > custom-values.yaml
+          gcrSAKey: |
+            ${{ secrets.GH_TF_KEY }}
+          image:
+            repository: gcr.io/${{ secrets.GCP_PROJECT_ID }}/nino-db
+            tag: ${{ github.sha }}
+          ingress:
+            enabled: true
+          EOF
+
+      - name: Deploy to GKE with Helm
+        run: |
+          helm upgrade --install nino-db Charts/nino-db \
+            --namespace $GKE_DEPLOYMENT_NAMESPACE \
+            -f custom-values.yaml \
+            --wait
