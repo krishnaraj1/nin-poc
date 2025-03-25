@@ -1,4 +1,4 @@
-name: Plan, Apply Terraform, and Deploy to GKE
+name: Terraform Plan and Apply
 
 on:
   push:
