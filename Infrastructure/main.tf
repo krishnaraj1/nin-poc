@@ -19,6 +19,9 @@ resource "google_container_cluster" "nino-primary" {
   location           = "${var.region}-a"
   initial_node_count = 1
 
+  # Disable deletion protection
+  deletion_protection = false
+
   node_config {
     machine_type = "e2-medium"
     oauth_scopes = [
