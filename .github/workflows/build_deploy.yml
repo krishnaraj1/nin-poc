@@ -45,7 +45,9 @@ jobs:
 
       - name: Run Terraform Apply
         run: |
-          terraform destroy -auto-approve
+          terraform destroy -auto-approve \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="region=${{ secrets.GCP_REGION }}"
 
   Build_and_Deploy_app:
     needs: Infrastructure
