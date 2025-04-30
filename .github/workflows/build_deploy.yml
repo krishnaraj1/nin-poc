@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Terraform Apply
         run: |
-          terraform apply -input=false -auto-approve tfplan
+          terraform destroy -auto-approve
 
   Build_and_Deploy_app:
     needs: Infrastructure
